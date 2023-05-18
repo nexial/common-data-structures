@@ -7,17 +7,28 @@ class List {
     #maxOversize;
     #items;
     #_length;
-    #fixMaxOversize(value) {
-        this.#maxOversize = Math.max(value, this.#chunkIncrease);
-    }
+
     constructor (startCapacity = List.defaultCapacity, chunkIncrease = List.defaultChunkIncrease, maxOversize = List.defaultMaxOversize) {
-        this.#chunkIncrease = chunkIncrease;
-        this.#fixMaxOversize(maxOversize);
+        this.chunkIncrease = chunkIncrease;
+        this.maxOversize = maxOversize;
         this.#items = Array(startCapacity);
         this.#_length = 0;
     }
+    get chunkIncrease() {
+        return this.#chunkIncrease;
+    }
+    set chunkIncrease(value) {
+        this.#chunkIncrease = Math.max(value, 1);
+        this.maxOversize = this.#maxOversize; // if chunkIncrease changes we need to ensure again maxOversize accordingly
+    }
+    get maxOversize() {
+        return this.#maxOversize;
+    }
+    set maxOversize(value) {
+        this.#maxOversize = Math.max(value, this.#chunkIncrease);
+    }
     isValidIndex(index) {
-        return (index < this.length || index < 0);
+        return (index < this.length && index >= 0);
     }
     get isEmpty() {
         return (this.#_length === 0);
@@ -44,9 +55,12 @@ class List {
         this.#_length = newLength;
         return newLength;
     }
+    #removeItem(index) {
+
+    }
     delete(index) {
         if (this.isValidIndex(index))
-            return this.#items[index];
+            return this.length;
         throw new ListErrorIndexOutOfBounds("delete", index, this.length);
     }
     get first() {
