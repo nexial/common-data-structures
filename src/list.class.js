@@ -55,9 +55,9 @@ class List {
         this.#_length = newLength;
         return newLength;
     }
-    #removeItem(index) {
+    //#removeItem(index) {
 
-    }
+    //}
     delete(index) {
         if (this.isValidIndex(index))
             return this.length;
