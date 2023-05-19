@@ -1,4 +1,4 @@
-const {ListErrorIsEmpty, ListErrorIndexOutOfBounds} = require("./list.class.errors");
+const {ListErrorIsEmpty, ListErrorIndexOutOfBounds} = require("./array-buffer.errors");
 class List {
     static defaultCapacity = 1000;
     static defaultChunkIncrease = 250;
@@ -6,13 +6,17 @@ class List {
     #chunkIncrease;
     #maxOversize;
     #items;
-    #_length;
+    #length;
+    #startIndex;
+    #endIndex;
 
     constructor (startCapacity = List.defaultCapacity, chunkIncrease = List.defaultChunkIncrease, maxOversize = List.defaultMaxOversize) {
         this.chunkIncrease = chunkIncrease;
         this.maxOversize = maxOversize;
         this.#items = Array(startCapacity);
-        this.#_length = 0;
+        this.#length = 0;
+        this.#startIndex = 0;
+        this.#endIndex = 0;
     }
     get chunkIncrease() {
         return this.#chunkIncrease;
@@ -28,69 +32,91 @@ class List {
         this.#maxOversize = Math.max(value, this.#chunkIncrease);
     }
     isValidIndex(index) {
-        return (index < this.length && index >= 0);
+        return (index < this.#length && index >= 0);
     }
     get isEmpty() {
-        return (this.#_length === 0);
+        return (this.#length === 0);
     }
     get length() {
-        return this.#_length;
+        return this.#length;
     }
     get capacity() {
         return this.#items.length;
     }
     set capacity(value) {
-        if (value >= this.#_length)
+        if (value > this.#endIndex) {
+            value = Math.min(value, (this.#length + this.#maxOversize));
             this.#items.length = value;
+        }
+        else
+            this.minimizeCapacity(value);
     }
-    #checkCapacityIncrease(newLength) {
-        if (this.capacity < newLength) {
-            this.#items.length += this.#chunkIncrease;
+    minimizeCapacity(value) {
+        value = Math.max(value, this.#chunkIncrease, this.length);
+        this.#items.copyWithin(0, this.#startIndex, this.#endIndex + 1)
+        this.#items.length = value;
+        this.#startIndex = 0;
+        this.#endIndex = this.length - 1;
+    }
+    insert(index, item) {
+        if (!this.isValidIndex(index)) {
+            if (index === this.#items.length)
+                this.append(item);
+            else
+                throw new ListErrorIndexOutOfBounds("insert", index, this.length);
         }
     }
-    add(item) {
-        let newLength = this.#_length + 1;
-        this.#checkCapacityIncrease(newLength);
-        this.#items[this.length] = item;
-        this.#_length = newLength;
-        return newLength;
+    append(item) {
+        if (this.#endIndex === this.#items.length)
+            this.capacity += this.#chunkIncrease;
+        this.#endIndex++;
+        this.#items[this.#endIndex] = item;
+        return this.#length++ - 1;
     }
-    //#removeItem(index) {
-
-    //}
-    delete(index) {
-        if (this.isValidIndex(index))
-            return this.length;
-        throw new ListErrorIndexOutOfBounds("delete", index, this.length);
+    remove(index) {
+        if (!this.isValidIndex(index))
+            throw new ListErrorIndexOutOfBounds("delete", index, this.length);
+        let item = this.#items[this.#startIndex + index];
+        if (index === 0)
+            this.#startIndex++;
+        else {
+            if (index < this.#endIndex) {
+                let realStartIndex = this.#startIndex + index;
+                this.#items.copyWithin(realStartIndex, realStartIndex + 1, this.#endIndex + 1);
+            }
+            this.#endIndex--;
+        }
+        this.#length++;
+        return item;
     }
     get first() {
-        if (!this.isEmpty)
-            return this.#items[0];
-        throw new ListErrorIsEmpty("first getter");
+        if (this.isEmpty)
+            throw new ListErrorIsEmpty("first getter");
+        return this.#items[this.#startIndex];
     }
     set first(value) {
-        if (!this.isEmpty)
-            this.#items[0] = value;
-        throw new ListErrorIsEmpty("first setter");
+        if (this.isEmpty)
+            throw new ListErrorIsEmpty("first setter");
+        this.#items[this.#startIndex] = value;
     }
     get last() {
-        if (!this.isEmpty)
-            return this.#items[this.#_length];
-        throw new ListErrorIsEmpty("last getter");
+        if (this.isEmpty)
+            throw new ListErrorIsEmpty("last getter");
+        return this.#items[this.#endIndex];
     }
     set last(value) {
-        if (!this.isEmpty)
-            this.#items[this.#_length] = value;
-        throw new ListErrorIsEmpty("last setter");
+        if (this.isEmpty)
+            throw new ListErrorIsEmpty("last setter");
+        this.#items[this.#endIndex] = value;
     }
     getItem(index) {
         if (this.isValidIndex(index))
-            return this.#items[index];
+            return this.#items[this.#startIndex + index];
         throw new ListErrorIndexOutOfBounds("getItem", index, this.length);
     }
     setItem(index, value) {
         if (this.isValidIndex(index))
-            this.#items[index] = value;
+            this.#items[this.#startIndex + ] = value;
         throw new ListErrorIndexOutOfBounds("setItem", index, this.length);
     }
 }
