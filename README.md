@@ -12,7 +12,8 @@ The data structure which are provided are
 4. Stack
 5. Set
 6. HashMap
-Maybe more
+
+... Maybe more ...
 
 In addition the package comes with a set of unit test for ensuring proper functioning of it.
 
