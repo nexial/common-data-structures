@@ -116,7 +116,7 @@ class List {
     }
     setItem(index, value) {
         if (this.isValidIndex(index))
-            this.#items[this.#startIndex + ] = value;
+            this.#items[this.#startIndex + index] = value;
         throw new ListErrorIndexOutOfBounds("setItem", index, this.length);
     }
 }
