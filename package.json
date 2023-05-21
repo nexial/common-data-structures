@@ -1,6 +1,6 @@
 {
   "name": "common-data-structures",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "scripts": {
     "test": "jest"
@@ -10,7 +10,7 @@
     "testMatch": ["**/tests/**/*.js"]
   },
   "keywords": [],
-  "author": "",
+  "author": "Bruno Fratini",
   "license": "ISC",
   "devDependencies": {
     "jest": "^29.5.0"
