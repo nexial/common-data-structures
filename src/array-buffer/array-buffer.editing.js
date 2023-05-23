@@ -1,5 +1,5 @@
 const {ArrayBufferError, ArrayBufferErrorIsEmpty, ArrayErrorIndexOutOfBounds} = require("./array-buffer.errors");
-require("./array-buffer.info-struct");
+require("./array-buffer.struct");
 const arrayBufferSizing = require("./array-buffer.sizing");
 
 function appendLastItem(item, bufferInfo, array) {
@@ -33,7 +33,7 @@ function insertItem(index, item, bufferInfo, array) {
     }
 }
 
-remove(index) {
+function remove(index) {
     if (!this.isValidIndex(index))
         throw new ListErrorIndexOutOfBounds("delete", index, this.length);
     let item = this.#items[this.#startIndex + index];

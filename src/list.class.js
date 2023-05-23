@@ -1,8 +1,9 @@
-const {ListErrorIsEmpty, ListErrorIndexOutOfBounds} = require("./array-buffer.errors");
+const {ListErrorIsEmpty, ListErrorIndexOutOfBounds} = require("./array-buffer/array-buffer.errors");
+const {defaultBufferStartCapacity, defaultBufferChunkIncrease, defaultBufferMaxOversize} = require("./array-buffer/array-buffer.struct");
 class List {
-    static defaultCapacity = 1000;
-    static defaultChunkIncrease = 250;
-    static defaultMaxOversize = 10000;
+    static defaultCapacity = defaultBufferStartCapacity;
+    static defaultChunkIncrease = defaultBufferChunkIncrease;
+    static defaultMaxOversize = defaultBufferMaxOversize;
     #chunkIncrease;
     #maxOversize;
     #items;
