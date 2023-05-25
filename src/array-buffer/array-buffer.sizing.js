@@ -10,28 +10,30 @@ class ArrayBufferSizing {
         return arrayBuffer;
     }
     static setCapacity(value, arrayBuffer) {
-        if (value > (arrayBuffer.endIndex + 1) && value <= (arrayBuffer.usedLength + arrayBuffer.maxOversize))
+        if (value > (arrayBuffer.endIndex + 1))
             arrayBuffer.array.length = value;
         else {
-            let newCapacity = Math.max(value, arrayBuffer.usedLength);
+            let newCapacity = Math.max(value, arrayBuffer.size);
             ArrayBufferSizing.minimizeCapacity(newCapacity, arrayBuffer);
         }
+        // If explicitly required new capacity generates a greater oversize than current maxOversize this latter needs to be increased accordingly
+        arrayBuffer.maxOversize = Math.max(arrayBuffer.array.length - arrayBuffer.size, arrayBuffer.maxOversize);
     }
     static minimizeCapacity(value, arrayBuffer) {
-        arrayBuffer.copyWithin(0, arrayBuffer.startIndex, arrayBuffer.endIndex + 1)
+        arrayBuffer.array.copyWithin(0, arrayBuffer.startIndex, arrayBuffer.endIndex + 1)
         arrayBuffer.array.length = value;
         arrayBuffer.startIndex = 0;
-        arrayBuffer.endIndex = arrayBuffer.usedLength - 1;
+        arrayBuffer.endIndex = arrayBuffer.size - 1;
     }
     static checkForBufferOversize(arrayBuffer, appendEmptyChunk) {
-        if ((arrayBuffer.array.length - arrayBuffer.usedLength) > arrayBuffer.maxOversize) {
-            let newCapacity = (appendEmptyChunk ? arrayBuffer.usedLength + arrayBuffer.chunkIncrease : arrayBuffer.usedLength);
+        if ((arrayBuffer.array.length - arrayBuffer.size) > arrayBuffer.maxOversize) {
+            let newCapacity = (appendEmptyChunk ? arrayBuffer.size + arrayBuffer.chunkIncrease : arrayBuffer.size);
             ArrayBufferSizing.minimizeCapacity(newCapacity);
         }
     }
     static updateBufferForAppendAtTheEndItems(itemsToAppendCount, arrayBuffer) {
         arrayBuffer.endIndex += itemsToAppendCount;
-        arrayBuffer.usedLength += itemsToAppendCount;
+        arrayBuffer.size += itemsToAppendCount;
         if ((arrayBuffer.endIndex + 1) > arrayBuffer.array.length) {
             let sizeIncrease = Math.ceil(arrayBuffer.chunkIncrease / itemsToAppendCount) * arrayBuffer.chunkIncrease;
             arrayBuffer.array.length += sizeIncrease;
@@ -39,7 +41,7 @@ class ArrayBufferSizing {
         }
     }
     static updateBufferForInsertAtTheBeginningItems(itemsToInsertCount, arrayBuffer) {
-        arrayBuffer.usedLength += itemsToInsertCount;
+        arrayBuffer.size += itemsToInsertCount;
         if (arrayBuffer.startIndex >= itemsToInsertCount)
             arrayBuffer.startIndex = arrayBuffer.startIndex - itemsToInsertCount;
         else {

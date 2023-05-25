@@ -7,7 +7,7 @@ const ArrayBuffer = {
     maxOversize : defaultBufferMaxOversize,
     startIndex : 0,
     endIndex : 0,
-    usedLength : 0,
+    size : 0,
     array: []
 }
 
@@ -23,13 +23,13 @@ class ArrayBufferUtils {
         arrayBuffer.maxOversize = Math.max(value, arrayBuffer.chunkIncrease);
     }
     static isEmpty(arrayBuffer) {
-        return (arrayBuffer.usedLength === 0);
+        return (arrayBuffer.size === 0);
     }
-    static getLength(arrayBuffer) {
-        return arrayBuffer.usedLength;
+    static getSize(arrayBuffer) {
+        return arrayBuffer.size;
     }
     static isValidIndex(index, arrayBuffer) {
-        return (index < arrayBuffer.usedLength && index >= 0);
+        return (index < arrayBuffer.size && index >= 0);
     }
 }
 

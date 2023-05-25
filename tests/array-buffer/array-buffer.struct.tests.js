@@ -102,10 +102,18 @@ test('Try to set both chunkIncrease and maxOversize in a single call with chunkI
     expect(arrayBuffer.maxOversize).toBe(1);
 });
 
-test('Validate newly instanced arrayBuffer has zero usedLength and that is considered properly by isEmpty', () => {
+test('Validate in newly instanced arrayBuffer getSize is zero and isEmpty is true', () => {
     // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
     let arrayBuffer = getTestArrayBufferStructure();
-    expect(arrayBuffer.usedLength).toBe(0);
+    expect(ArrayBufferUtils.getSize(arrayBuffer)).toBe(0);
+    expect(ArrayBufferUtils.isEmpty(arrayBuffer)).toBeTruthy();
+});
+
+test('Validate although the buffer array is not empty, if not used, getSize is zero and isEmpty is true', () => {
+    // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
+    let arrayBuffer = getTestArrayBufferStructure();
+    arrayBuffer.array = Array(3);
+    expect(ArrayBufferUtils.getSize(arrayBuffer)).toBe(0);
     expect(ArrayBufferUtils.isEmpty(arrayBuffer)).toBeTruthy();
 });
 
@@ -119,10 +127,40 @@ test('Validate newly instanced arrayBuffer has both startIndex and endIndex prop
 test('Validate for a newly instanced arrayBuffer isValidIndex will give always false (because empty)', () => {
     // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
     let arrayBuffer = getTestArrayBufferStructure();
-    expect(ArrayBufferUtils.isValidIndex(Number.MIN_VALUE, arrayBuffer)).toBeFalsy();
+    expect(ArrayBufferUtils.isValidIndex(Number.MIN_SAFE_INTEGER, arrayBuffer)).toBeFalsy();
     expect(ArrayBufferUtils.isValidIndex(-1, arrayBuffer)).toBeFalsy();
     expect(ArrayBufferUtils.isValidIndex(0, arrayBuffer)).toBeFalsy();
     expect(ArrayBufferUtils.isValidIndex(+1, arrayBuffer)).toBeFalsy();
-    expect(ArrayBufferUtils.isValidIndex(Number.MAX_VALUE, arrayBuffer)).toBeFalsy();
+    expect(ArrayBufferUtils.isValidIndex(Number.MAX_SAFE_INTEGER, arrayBuffer)).toBeFalsy();
 });
 
+test('Validate for a not empty arrayBuffer indexes lesser or equal than zero calling isValidIndex will give always false, independently from startIndex and endIndex\'', () => {
+    // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
+    let arrayBuffer = getTestArrayBufferStructure();
+    arrayBuffer.size = 5;
+    arrayBuffer.startIndex = 2;
+    arrayBuffer.endIndex = 4;
+    expect(ArrayBufferUtils.isValidIndex(Number.MIN_SAFE_INTEGER, arrayBuffer)).toBeFalsy();
+    expect(ArrayBufferUtils.isValidIndex(-1, arrayBuffer)).toBeFalsy();
+});
+
+test('Validate for a not empty arrayBuffer for indexes in the range [zero .. size - 1] isValidIndex will give true, independently from startIndex and endIndex', () => {
+    // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
+    let arrayBuffer = getTestArrayBufferStructure();
+    arrayBuffer.size = 3;
+    arrayBuffer.startIndex = 2;
+    arrayBuffer.endIndex = 4;
+    expect(ArrayBufferUtils.isValidIndex(0, arrayBuffer)).toBeTruthy();
+    expect(ArrayBufferUtils.isValidIndex(1, arrayBuffer)).toBeTruthy();
+    expect(ArrayBufferUtils.isValidIndex(2, arrayBuffer)).toBeTruthy();
+});
+
+test('Validate for a not empty arrayBuffer for indexes greater or equal than size, isValidIndex will give false, independently from startIndex and endIndex', () => {
+    // Ensuring maxOversize is greater than chunkIncrease but different by default testMaxOversize
+    let arrayBuffer = getTestArrayBufferStructure();
+    arrayBuffer.size = 3;
+    arrayBuffer.startIndex = 2;
+    arrayBuffer.endIndex = 4;
+    expect(ArrayBufferUtils.isValidIndex(3, arrayBuffer)).toBeFalsy();
+    expect(ArrayBufferUtils.isValidIndex(Number.MAX_SAFE_INTEGER, arrayBuffer)).toBeFalsy();
+});
