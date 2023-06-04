@@ -1,11 +1,8 @@
-const {
-    ArrayBuffer,
-    ArrayBufferUtils
-} = require("../../src/array-buffer/array-buffer.struct");
+const {ArrayBuffer} = require("../../src/array-buffer/array-buffer.struct");
 class ArrayBufferSizing {
-    static initializeAll(chunkIncrease, maxOversize, capacity) {
+    static initializeAll(capacity, chunkIncrease, maxOversize) {
         let arrayBuffer = ArrayBuffer;
-        ArrayBufferUtils.setChunkIncreaseAndMaxOversize(chunkIncrease, maxOversize, arrayBuffer);
+        ArrayBufferSizing.setChunkIncreaseAndMaxOversize(chunkIncrease, maxOversize, arrayBuffer);
         arrayBuffer.array = Array(capacity);
         return arrayBuffer;
     }
@@ -24,6 +21,7 @@ class ArrayBufferSizing {
         arrayBuffer.array.length = value;
         arrayBuffer.startIndex = 0;
         arrayBuffer.endIndex = arrayBuffer.size - 1;
+        arrayBuffer.fill(undefined, arrayBuffer.endIndex + 1, Math.min(arrayBuffer.higherUsedIndex, value));
     }
     static checkForBufferOversize(arrayBuffer, appendEmptyChunk) {
         if ((arrayBuffer.array.length - arrayBuffer.size) > arrayBuffer.maxOversize) {
@@ -31,8 +29,21 @@ class ArrayBufferSizing {
             ArrayBufferSizing.minimizeCapacity(newCapacity);
         }
     }
+    static setChunkIncreaseAndMaxOversize(valueChunkIncrease, valueMaxOversize, arrayBuffer) {
+        arrayBuffer.chunkIncrease = Math.max(valueChunkIncrease, 1);
+        ArrayBufferSizing.setMaxOversize(valueMaxOversize, arrayBuffer);
+    }
+    static setChunkIncrease(value, arrayBuffer) {
+        ArrayBufferSizing.setChunkIncreaseAndMaxOversize(value, arrayBuffer.maxOversize, arrayBuffer);
+    }
+    static setMaxOversize(value, arrayBuffer) {
+        arrayBuffer.maxOversize = Math.max(value, arrayBuffer.chunkIncrease);
+        ArrayBufferSizing.checkForBufferOversize(arrayBuffer, false);
+    }
+
     static updateBufferForAppendAtTheEndItems(itemsToAppendCount, arrayBuffer) {
         arrayBuffer.endIndex += itemsToAppendCount;
+        arrayBuffer.higherUsedIndex = Math.max(arrayBuffer.higherUsedIndex, arrayBuffer.endIndex);
         arrayBuffer.size += itemsToAppendCount;
         if ((arrayBuffer.endIndex + 1) > arrayBuffer.array.length) {
             let sizeIncrease = Math.ceil(arrayBuffer.chunkIncrease / itemsToAppendCount) * arrayBuffer.chunkIncrease;
@@ -55,6 +66,19 @@ class ArrayBufferSizing {
             arrayBuffer.endIndex = newEndIndex;
             arrayBuffer.startIndex = 0;
         }
+    }
+    static clearUnusedReferences(arrayBuffer) {
+        arrayBuffer.array.fill(undefined, 0, arrayBuffer.startIndex - 1);
+        arrayBuffer.fill(undefined, arrayBuffer.endIndex + 1, arrayBuffer.higherUsedIndex);
+        arrayBuffer.higherUsedIndex = arrayBuffer.endIndex;
+    }
+    static clear(arrayBuffer, capacity = 0) {
+        arrayBuffer.startIndex = 0;
+        arrayBuffer.endIndex = 0;
+        capacity = Math.min(capacity, arrayBuffer.maxOversize);
+        arrayBuffer.array.length = capacity;
+        arrayBuffer.array.fill(undefined, 0, Math.min(capacity, arrayBuffer.higherUsedIndex));
+        arrayBuffer.higherUsedIndex = 0;
     }
 }
 
